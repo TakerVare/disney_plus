@@ -175,6 +175,23 @@ app.get('/users/favorites/:id', (req, res) => {
     });
 });
 
+// insertar favoritos por usuario
+app.post('/users/favorites/:id', (req, res) => {
+    const { id } = req.params;
+    db.query('SELECT m.id AS movie_id, m.name AS movie_name, m.url, m.length AS movie_leng, m.director AS movie_director, m.year AS movie_year, m.saga_id AS movie_saga FROM movies m LEFT JOIN favorites fa ON m.id = fa.movie_id WHERE fa.user_id = ?', [id], (err, results) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        if (results.length === 0) {
+            res.status(404).json({ message: 'Sin resultados' });
+            return;
+        }
+        //res.json(results[0]);
+        res.json(results);
+    });
+});
+
 
 /*
 // Obtener todos los usuarios
