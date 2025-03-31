@@ -176,21 +176,38 @@ app.get('/users/favorites/:id', (req, res) => {
 });
 
 // insertar favoritos por usuario
-app.post('/users/favorites/:id', (req, res) => {
-    const { id } = req.params;
-    db.query('SELECT m.id AS movie_id, m.name AS movie_name, m.url, m.length AS movie_leng, m.director AS movie_director, m.year AS movie_year, m.saga_id AS movie_saga FROM movies m LEFT JOIN favorites fa ON m.id = fa.movie_id WHERE fa.user_id = ?', [id], (err, results) => {
+app.post('/movies/:id_movie/fav/:id_usuario', (req, res) => {
+    const { id_movie, id_usuario } = req.params;
+
+    db.query('INSERT INTO favorites (user_id, movie_id) VALUES (?, ?)', [id_usuario, id_movie], (err, results) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
         }
-        if (results.length === 0) {
-            res.status(404).json({ message: 'Sin resultados' });
-            return;
-        }
-        //res.json(results[0]);
-        res.json(results);
+        res.status(201).json({ message: 'Película añadida a favoritos', insertId: results.insertId });
     });
 });
+
+// Eliminar favoritos usuario
+app.put('/movies/:id_movie/del-fav/:id_usuario', (req, res) => {
+    const { id_movie, id_usuario } = req.params;
+
+    db.query('DELETE FROM `favorites` WHERE user_id = ? AND movie_id = ?', [id_usuario, id_movie], (err, results) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+
+        // Verificar si se eliminó alguna fila
+        if (results.affectedRows === 0) {
+            res.status(404).json({ message: 'No se encontró la película en favoritos' });
+            return;
+        }
+
+        res.status(200).json({ message: 'Película eliminada de favoritos' });
+    });
+});
+
 
 
 /*
